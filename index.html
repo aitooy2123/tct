@@ -1,1 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คำนวณสิทธิไทยช่วยไทยพลัส</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+        body { font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .input-focus:focus { outline: none; border-color: #6366f1; ring: 2px solid #6366f1; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 flex items-start justify-center md:items-center">
 
+    <div class="bg-white rounded-[2rem] shadow-xl w-full max-w-sm p-6 border border-slate-100">
+        <h1 class="text-xl font-bold text-slate-800 mb-6 text-center">คำนวณสิทธิไทยช่วยไทยพลัส</h1>
+        
+        <div class="space-y-5">
+            <div>
+                <label class="block text-slate-500 mb-2 font-medium text-xs uppercase tracking-wider">ราคาสินค้า (บาท)</label>
+                <input type="number" id="price" placeholder="0.00" oninput="calculate()"
+                    class="w-full p-4 border border-slate-200 rounded-2xl text-lg font-semibold text-slate-700 bg-slate-50 input-focus transition-all">
+            </div>
+
+            <div>
+                <label class="block text-slate-500 mb-2 font-medium text-xs uppercase tracking-wider">สิทธิคงเหลือในเป๋าตัง (บาท)</label>
+                <input type="number" id="subsidy" value="1000" oninput="calculate()"
+                    class="w-full p-4 border border-slate-200 rounded-2xl text-lg font-semibold text-slate-700 bg-slate-50 input-focus transition-all">
+            </div>
+            
+            <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl mt-2 text-center">
+                <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest mb-1">ราคาสินค้าที่คุ้มค่าสูงสุด</p>
+                <p id="resMaxUsable" class="text-3xl font-bold text-indigo-700">0.00 บาท</p>
+            </div>
+        </div>
+
+        <div id="result" class="hidden mt-8 animate-in fade-in duration-500">
+            <div class="space-y-3">
+                <div class="flex justify-between items-center bg-slate-100 p-4 rounded-2xl">
+                    <span class="text-slate-500 text-sm">ราคาสินค้าเต็ม:</span>
+                    <span id="resPrice" class="font-bold text-slate-800">0.00 บาท</span>
+                </div>
+                
+                <div class="flex justify-between items-center bg-indigo-600 p-4 rounded-2xl shadow-lg shadow-indigo-100">
+                    <span class="text-indigo-100 text-sm">รัฐช่วยจ่าย (60%):</span>
+                    <span id="resGovt" class="font-bold text-white text-lg">0.00 บาท</span>
+                </div>
+                
+                <div class="flex justify-between items-center bg-emerald-500 p-4 rounded-2xl shadow-lg shadow-emerald-100">
+                    <span class="text-emerald-50 text-sm">คุณจ่ายเอง (40%):</span>
+                    <span id="resUser" class="font-bold text-white text-lg">0.00 บาท</span>
+                </div>
+
+                <div class="flex justify-between items-center bg-amber-500 p-4 rounded-2xl shadow-lg shadow-amber-100">
+                    <span class="text-amber-950 text-sm font-medium">ยอดจ่ายเพิ่ม:</span>
+                    <span id="resExtra" class="font-bold text-amber-950 text-lg">0.00 บาท</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatMoney(num) {
+            return num.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function calculate() {
+            const price = parseFloat(document.getElementById('price').value);
+            const availableSubsidy = parseFloat(document.getElementById('subsidy').value);
+            const resultDiv = document.getElementById('result');
+            
+            const maxEligiblePrice = Math.min(200 / 0.6, availableSubsidy / 0.6);
+            document.getElementById('resMaxUsable').innerText = formatMoney(maxEligiblePrice) + " บาท";
+            
+            if (isNaN(price) || price <= 0) {
+                resultDiv.classList.add('hidden');
+                return;
+            }
+
+            const eligiblePrice = Math.min(price, 333.33); 
+            const excessPrice = Math.max(0, price - 333.33);
+            
+            const govtShareOfEligible = eligiblePrice * 0.60;
+            const userShareOfEligible = eligiblePrice * 0.40;
+            
+            const actualGovtPay = Math.min(govtShareOfEligible, availableSubsidy, 200);
+            const shortfallGovt = govtShareOfEligible - actualGovtPay;
+            const extraPayment = excessPrice + shortfallGovt;
+
+            document.getElementById('resPrice').innerText = formatMoney(price) + " บาท";
+            document.getElementById('resGovt').innerText = formatMoney(actualGovtPay) + " บาท";
+            document.getElementById('resUser').innerText = formatMoney(userShareOfEligible) + " บาท";
+            document.getElementById('resExtra').innerText = formatMoney(extraPayment) + " บาท";
+
+            resultDiv.classList.remove('hidden');
+        }
+        window.onload = calculate;
+    </script>
+</body>
+</html>
